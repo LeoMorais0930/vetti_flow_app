@@ -1,16 +1,33 @@
-# vetti_flow_app
+# VETTI Flow — App do Gestor
 
-A new Flutter project.
+Aplicativo móvel desenvolvido em Flutter para controle e gestão do fluxo de produção em tempo real.
 
-## Getting Started
+## 🚀 Funcionalidades
+- **Gestão de Produtos**: Cadastro e edição de roteiros de produção (Blueprints).
+- **Controle de Pedidos**: Criação, edição e avanço de etapas de produção.
+- **Sincronização em Tempo Real**: Recebe atualizações via SignalR.
+- **Alta Performance**: Otimizado para 90Hz/120Hz em dispositivos compatíveis.
+- **PWA**: Instalável como aplicação web no Windows/Desktop.
 
-This project is a starting point for a Flutter application.
+## 🛠️ Configuração e Execução
 
-A few resources to get you started if this is your first Flutter project:
+### Pré-requisitos
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Comandos Principais
+```bash
+# Obter dependências
+flutter pub get
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Executar o projeto (Web/Chrome)
+flutter run -d chrome
+
+# Executar o projeto (Android)
+flutter run -d android
+```
+
+## ⚙️ Configurações do Servidor
+No primeiro acesso ou ao mudar de ambiente (Casa/Escritório), vá na tela de **Configurações** e utilize os atalhos rápidos de IP para conectar ao servidor local.
+
+---
+Desenvolvido para **VETTI — Segurança e Tecnologia**.
