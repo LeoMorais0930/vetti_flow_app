@@ -26,7 +26,7 @@ class SignalRService {
     if (_hub?.state == HubConnectionState.Connected) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final base  = prefs.getString('server_ip') ?? 'http://10.36.0.85:5000';
+    final base  = prefs.getString('server_ip') ?? 'http://10.36.0.75:5000';
 
     _hub = HubConnectionBuilder()
         .withUrl('$base/hubs/production', options: HttpConnectionOptions(
@@ -79,6 +79,20 @@ class SignalRService {
       _connected = false;
       Future.delayed(const Duration(seconds: 10), connect);
     }
+  }
+
+  Future<void> reconnectWithNewIp() async {
+    print('SignalR: Reconectando com novo IP...');
+    if (_hub != null) {
+      try {
+        await _hub!.stop();
+      } catch (e) {
+        print('SignalR: Erro ao parar hub: $e');
+      }
+      _hub = null;
+      _connected = false;
+    }
+    await connect();
   }
 
   bool get isConnected => _connected && _hub?.state == HubConnectionState.Connected;

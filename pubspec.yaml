@@ -17,6 +17,7 @@ dependencies:
 
   # UX
   shared_preferences: ^2.2.3  # guarda deviceId e IP do servidor
+  flutter_displaymode: ^0.6.0 # Alta taxa de atualização (FPS)
 
 dev_dependencies:
   flutter_test:

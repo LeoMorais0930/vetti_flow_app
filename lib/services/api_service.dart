@@ -9,7 +9,7 @@ class ApiService {
   ApiService._();
 
   // IP configurável pelo gestor na tela de Settings
-  static const _defaultBase = 'http://10.36.0.85:5000';
+  static const _defaultBase = 'http://10.36.0.75:5000';
 
   Future<String> get _base async {
     final prefs = await SharedPreferences.getInstance();
@@ -179,17 +179,27 @@ class ApiService {
 
   Future<void> saveSettings({String? serverIp, String? deviceId, String? sortBy}) async {
     final prefs = await SharedPreferences.getInstance();
-    if (serverIp != null) await prefs.setString('server_ip', serverIp);
+    if (serverIp != null) {
+      await prefs.setString('server_ip', serverIp);
+      
+      // Atualizar histórico de IPs
+      List<String> history = prefs.getStringList('server_ip_history') ?? [];
+      history.remove(serverIp); // Remove se já existir para mover para o topo
+      history.insert(0, serverIp);
+      if (history.length > 5) history = history.sublist(0, 5); // Mantém apenas os 5 últimos
+      await prefs.setStringList('server_ip_history', history);
+    }
     if (deviceId != null) await prefs.setString('device_id', deviceId);
     if (sortBy != null) await prefs.setString('sort_by', sortBy);
   }
 
-  Future<({String serverIp, String deviceId, String sortBy})> loadSettings() async {
+  Future<({String serverIp, String deviceId, String sortBy, List<String> ipHistory})> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     return (
       serverIp: prefs.getString('server_ip') ?? _defaultBase,
       deviceId: prefs.getString('device_id') ?? 'gestor-01',
       sortBy: prefs.getString('sort_by') ?? 'prioridade',
+      ipHistory: prefs.getStringList('server_ip_history') ?? [],
     );
   }
 }

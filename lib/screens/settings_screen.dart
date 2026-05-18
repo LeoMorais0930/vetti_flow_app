@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/signalr_service.dart';
 import '../theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,7 +14,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _ipCtrl     = TextEditingController();
   final _deviceCtrl = TextEditingController();
   String _sortBy    = 'prioridade';
+  List<String> _ipHistory = [];
   bool _saving = false;
+
+  final List<({String name, String ip})> _presets = [
+    (name: 'Casa', ip: 'http://192.168.0.18:5000'),
+    (name: 'Escritório (Atual)', ip: 'http://10.36.0.75:5000'),
+    (name: 'Emulador', ip: 'http://10.0.2.2:5000'),
+  ];
 
   @override
   void initState() {
@@ -34,6 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _ipCtrl.text     = s.serverIp;
       _deviceCtrl.text = s.deviceId;
       _sortBy          = s.sortBy;
+      _ipHistory       = s.ipHistory;
     });
   }
 
@@ -44,6 +53,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       deviceId: _deviceCtrl.text.trim(),
       sortBy: _sortBy,
     );
+    
+    // Notifica o SignalR para reconectar se o IP mudou
+    await SignalRService.instance.reconnectWithNewIp();
+
     setState(() => _saving = false);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,6 +93,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             keyboardType: TextInputType.url,
             autocorrect: false,
           ),
+          const SizedBox(height: 12),
+          const Text(
+            'Atalhos rápidos',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: kVettiGrayDk),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: _presets.map((p) => ActionChip(
+              label: Text(p.name),
+              onPressed: () => setState(() => _ipCtrl.text = p.ip),
+              backgroundColor: kVettiGray,
+              labelStyle: const TextStyle(fontSize: 12),
+              padding: EdgeInsets.zero,
+            )).toList(),
+          ),
+          if (_ipHistory.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Histórico recente',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: kVettiGrayDk),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: _ipHistory.where((ip) => !_presets.any((p) => p.ip == ip)).map((ip) => ActionChip(
+                label: Text(ip.replaceFirst('http://', '').replaceFirst(':5000', '')),
+                onPressed: () => setState(() => _ipCtrl.text = ip),
+                backgroundColor: Colors.white,
+                labelStyle: const TextStyle(fontSize: 12),
+                padding: EdgeInsets.zero,
+              )).toList(),
+            ),
+          ],
           const SizedBox(height: 28),
           const Text(
             'Este dispositivo',
