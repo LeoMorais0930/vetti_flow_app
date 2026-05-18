@@ -116,7 +116,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         _completedOrders = completed.where((o) {
           if (_logFilter == 'Tudo') return true;
           
-          final dateToCompare = (o.completedAt ?? o.createdAt ?? DateTime.now()).toLocal();
+          // As datas já vêm como UTC-3 do servidor (GetBrasiliaTime)
+          final dateToCompare = o.completedAt ?? o.createdAt ?? DateTime.now();
 
           if (_logFilter == 'Hoje') {
             return dateToCompare.year == now.year && 
