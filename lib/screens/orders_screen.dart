@@ -424,11 +424,27 @@ class _OrderCardState extends State<_OrderCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
-                      widget.order.label,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.order.productCode.isNotEmpty 
+                              ? '${widget.order.productCode} — ${widget.order.productName}'
+                              : widget.order.label,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: kVettiBlue),
+                        ),
+                        if (widget.order.productCode.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              'Lote: ${widget.order.label}',
+                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   if (widget.order.isHighPriority)
@@ -445,10 +461,10 @@ class _OrderCardState extends State<_OrderCard> {
                     ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 '${widget.order.totalQty} un · Etapa: ${widget.order.currentStageName}',
-                style: const TextStyle(color: kVettiGrayDk, fontSize: 13),
+                style: const TextStyle(color: kVettiGrayDk, fontSize: 13, fontWeight: FontWeight.w500),
               ),
               if (widget.order.componentCodes.isNotEmpty) ...[
                 const SizedBox(height: 4),

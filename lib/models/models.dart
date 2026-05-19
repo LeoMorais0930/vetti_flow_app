@@ -73,6 +73,8 @@ class ProductionOrder {
   final int currentStageIndex;
   final bool isCompleted;
   final String componentCodes;
+  final String productCode; // NOVO
+  final String productName; // NOVO
   final List<KitComponentStatus> kitStatuses;
   final List<String> stageNames;
   final DateTime? createdAt;
@@ -86,6 +88,8 @@ class ProductionOrder {
     required this.currentStageIndex,
     required this.isCompleted,
     required this.componentCodes,
+    required this.productCode,
+    required this.productName,
     required this.kitStatuses,
     required this.stageNames,
     this.createdAt,
@@ -107,6 +111,8 @@ class ProductionOrder {
       currentStageIndex: j['currentStageIndex'],
       isCompleted: j['isCompleted'],
       componentCodes: j['componentCodes'] ?? '',
+      productCode: blueprint?['code'] ?? j['productCode'] ?? '',
+      productName: blueprint?['name'] ?? j['productName'] ?? '',
       kitStatuses: (j['kitStatuses'] as List?)?.map((x) => KitComponentStatus.fromJson(x)).toList() ?? [],
       stageNames: stages,
       createdAt: j['createdAt'] != null ? DateTime.parse(j['createdAt']) : null,
@@ -122,6 +128,8 @@ class ProductionOrder {
         currentStageIndex: j['currentStageIndex'],
         isCompleted: j['isCompleted'],
         componentCodes: j['componentCodes'] ?? '',
+        productCode: j['productCode'] ?? '',
+        productName: j['productName'] ?? '',
         kitStatuses: (j['kitStatuses'] as List?)?.map((x) => KitComponentStatus.fromJson(x)).toList() ?? [],
         stageNames: List<String>.from(j['stageNames'] ?? []),
         createdAt: j['createdAt'] != null ? DateTime.parse(j['createdAt']) : null,
@@ -137,6 +145,8 @@ class ProductionOrder {
         currentStageIndex: currentStageIndex ?? this.currentStageIndex,
         isCompleted: isCompleted ?? this.isCompleted,
         componentCodes: componentCodes,
+        productCode: productCode,
+        productName: productName,
         kitStatuses: kitStatuses,
         stageNames: stageNames,
         createdAt: createdAt,

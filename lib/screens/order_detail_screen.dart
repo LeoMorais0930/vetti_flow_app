@@ -318,7 +318,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_order.label, overflow: TextOverflow.ellipsis),
+        title: Text(
+          _order.productCode.isNotEmpty 
+              ? '${_order.productCode} — ${_order.productName}'
+              : _order.label, 
+          overflow: TextOverflow.ellipsis
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.white),
@@ -333,6 +338,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Info do pedido ────────────────────────────────────────────
+            if (_order.productCode.isNotEmpty)
+              _InfoRow('Identificação do Lote', _order.label),
             _InfoRow('Quantidade total', '${_order.totalQty} unidades'),
             _InfoRow('Prioridade', _order.isHighPriority ? 'Alta' : 'Normal'),
             if (_order.componentCodes.isNotEmpty)

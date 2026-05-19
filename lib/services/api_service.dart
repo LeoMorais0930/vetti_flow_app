@@ -29,17 +29,18 @@ class ApiService {
   // ── Blueprints ─────────────────────────────────────────────────────────────
 
   Future<List<Blueprint>> getBlueprints() async {
+    final url = '${await _base}/api/blueprints';
     try {
       final res = await http.get(
-        Uri.parse('${await _base}/api/blueprints'),
+        Uri.parse(url),
         headers: await _headers,
       ).timeout(const Duration(seconds: 5)); // Timeout de 5 segundos
       
-      if (res.statusCode != 200) throw Exception('Erro ao buscar produtos');
+      if (res.statusCode != 200) throw Exception('Erro ao buscar produtos (${res.statusCode})');
       final list = jsonDecode(res.body) as List;
       return list.map((j) => Blueprint.fromJson(j)).toList();
     } catch (e) {
-      print('Erro API getBlueprints: $e');
+      print('Erro API getBlueprints em $url: $e');
       rethrow;
     }
   }
@@ -89,17 +90,18 @@ class ApiService {
   // ── Orders ─────────────────────────────────────────────────────────────────
 
   Future<List<ProductionOrder>> getActiveOrders() async {
+    final url = '${await _base}/api/orders';
     try {
       final res = await http.get(
-        Uri.parse('${await _base}/api/orders'),
+        Uri.parse(url),
         headers: await _headers,
       ).timeout(const Duration(seconds: 5)); // Timeout de 5 segundos
       
-      if (res.statusCode != 200) throw Exception('Erro ao buscar pedidos');
+      if (res.statusCode != 200) throw Exception('Erro ao buscar pedidos (${res.statusCode})');
       final list = jsonDecode(res.body) as List;
       return list.map((j) => ProductionOrder.fromJson(j)).toList();
     } catch (e) {
-      print('Erro API getActiveOrders: $e');
+      print('Erro API getActiveOrders em $url: $e');
       rethrow;
     }
   }
@@ -180,12 +182,18 @@ class ApiService {
   Future<void> saveSettings({String? serverIp, String? deviceId, String? sortBy}) async {
     final prefs = await SharedPreferences.getInstance();
     if (serverIp != null) {
-      await prefs.setString('server_ip', serverIp);
+      // Normalizar IP para garantir protocolo http://
+      String normalizedIp = serverIp.trim();
+      if (normalizedIp.isNotEmpty && !normalizedIp.startsWith('http://') && !normalizedIp.startsWith('https://')) {
+        normalizedIp = 'http://$normalizedIp';
+      }
+      
+      await prefs.setString('server_ip', normalizedIp);
       
       // Atualizar histórico de IPs
       List<String> history = prefs.getStringList('server_ip_history') ?? [];
-      history.remove(serverIp); // Remove se já existir para mover para o topo
-      history.insert(0, serverIp);
+      history.remove(normalizedIp); // Remove se já existir para mover para o topo
+      history.insert(0, normalizedIp);
       if (history.length > 5) history = history.sublist(0, 5); // Mantém apenas os 5 últimos
       await prefs.setStringList('server_ip_history', history);
     }

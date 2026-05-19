@@ -142,7 +142,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
                       children: [
                         const _Label('Tipo de Lote'),
                         ChoiceChip(
-                          label: const Text('KIT / COMBO'),
+                          label: const Text('Pedido / Kit'),
                           selected: _isKitMode,
                           onSelected: (v) => setState(() => _isKitMode = v),
                           selectedColor: kVettiBlue.withOpacity(0.2),
