@@ -9,7 +9,7 @@ class ApiService {
   ApiService._();
 
   // IP configurável pelo gestor na tela de Settings
-  static const _defaultBase = 'http://10.36.0.75:5000';
+  static const _defaultBase = 'http://10.36.0.4:5000';
 
   Future<String> get _base async {
     final prefs = await SharedPreferences.getInstance();

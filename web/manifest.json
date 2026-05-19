@@ -1,11 +1,11 @@
 {
-    "name": "vetti_flow_app",
-    "short_name": "vetti_flow_app",
+    "name": "VETTI Flow Gestor",
+    "short_name": "Gestor Flow",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0073BB",
+    "theme_color": "#0073BB",
+    "description": "Sistema de Gestão de Produção VETTI",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

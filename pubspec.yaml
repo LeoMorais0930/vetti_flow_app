@@ -17,13 +17,13 @@ dependencies:
 
   # UX
   shared_preferences: ^2.2.3  # guarda deviceId e IP do servidor
-  flutter_displaymode: ^0.6.0 # Alta taxa de atualização (FPS)
+  flutter_displaymode: ^0.7.0 # Alta taxa de atualização (FPS)
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:
   android: false
