@@ -34,6 +34,22 @@ class FigmaService {
       currentStage: 'almoxarifado',
       productionLogs: [],
     ),
+    FigmaOrder(
+      id: 'test_order_1500',
+      opNumber: 'OP-550-TEST',
+      productCode: '550-999',
+      productName: 'Controle 4 Botões',
+      totalQuantity: 1500,
+      producedQuantity: 0,
+      remainingQuantity: 1500,
+      status: FigmaStatus.pending,
+      createdBy: 'Vera Silva',
+      createdAt: DateTime.now(),
+      currentStage: 'teste',
+      productionLogs: [],
+      lastSignature: 'Ana (Soldagem)',
+      originStage: 'soldagem',
+    ),
   ];
 
   final List<FigmaRequisition> _requisitions = [
@@ -41,25 +57,12 @@ class FigmaService {
       id: '1',
       number: '1',
       status: RequisitionStatus.pending,
+      requesterName: 'Paula (SMD)',
+      originStage: 'smd',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
       items: [
         FigmaRequisitionItem(id: 'r1i1', code: 'RES-10K', description: 'Resistor 10k', requestedQuantity: 100),
         FigmaRequisitionItem(id: 'r1i2', code: 'CAP-100U', description: 'Capacitor 100uF', requestedQuantity: 50),
-      ],
-    ),
-    FigmaRequisition(
-      id: '2',
-      number: '2',
-      status: RequisitionStatus.pending,
-      items: [
-        FigmaRequisitionItem(id: 'r2i1', code: 'LED-RED', description: 'LED Vermelho', requestedQuantity: 200),
-      ],
-    ),
-    FigmaRequisition(
-      id: '3',
-      number: '3',
-      status: RequisitionStatus.pending,
-      items: [
-        FigmaRequisitionItem(id: 'r3i1', code: 'IC-555', description: 'CI 555', requestedQuantity: 10),
       ],
     ),
   ];
@@ -78,6 +81,10 @@ class FigmaService {
     }
   }
 
+  void addRequisition(FigmaRequisition req) {
+    _requisitions.add(req);
+  }
+
   void updateRequisition(FigmaRequisition updatedReq) {
     final index = _requisitions.indexWhere((r) => r.id == updatedReq.id);
     if (index != -1) {
@@ -87,5 +94,9 @@ class FigmaService {
 
   List<FigmaOrder> getOrdersByStage(String stage) {
     return _orders.where((o) => o.currentStage == stage).toList();
+  }
+
+  void removeOrder(String id) {
+    _orders.removeWhere((o) => o.id == id);
   }
 }

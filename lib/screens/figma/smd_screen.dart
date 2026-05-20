@@ -83,6 +83,9 @@ class _SMDScreenState extends State<SMDScreen> {
       producedQuantity: 0,
       remainingQuantity: order.totalQuantity,
       status: FigmaStatus.pending,
+      lastSignature: widget.user.name,
+      originStage: 'smd',
+      lastMoveAt: DateTime.now(),
     );
     _service.updateOrder(updatedOrder);
     _loadOrders();
@@ -93,8 +96,6 @@ class _SMDScreenState extends State<SMDScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final reqCount = _service.requisitions.where((r) => r.status != RequisitionStatus.completed).length;
-
     return Scaffold(
       appBar: FigmaAppBar(
         title: 'SMD',
@@ -107,56 +108,72 @@ class _SMDScreenState extends State<SMDScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => RequisitionsScreen(user: widget.user, onLogout: widget.onLogout)),
-                  );
-                  setState(() {}); // Refresh count after return
-                },
-                icon: Badge(
-                  label: Text('$reqCount'),
-                  child: const Icon(Icons.list_alt),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GlobalRequisitionButton(
+                    user: widget.user,
+                    onSuccess: () => setState(() {}),
+                  ),
                 ),
-                label: const Text('REQUISIÇÕES', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade700,
-                  foregroundColor: Colors.white,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RequisitionsScreen(user: widget.user, onLogout: widget.onLogout)),
+                      );
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.list_alt),
+                    label: const Text('VER REQS'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade900,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: _orders.map((o) => Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text('${o.productCode} - ${o.productName}'),
-                      const SizedBox(height: 12),
-                      ProgressIndicatorWidget(produced: o.producedQuantity, total: o.totalQuantity, color: Colors.blue),
-                      const SizedBox(height: 16),
-                      if (o.status != FigmaStatus.completed)
-                        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(o), child: const Text('APONTAMENTO'))),
-                      if (o.status == FigmaStatus.completed)
-                        SizedBox(width: double.infinity, child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                          onPressed: () => _sendToNext(o),
-                          child: const Text('ENVIAR PARA PRÓXIMA ETAPA'),
-                        )),
-                    ],
-                  ),
+            child: _orders.isEmpty 
+              ? const Center(child: Text('Nenhuma OP pendente no SMD.'))
+              : ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: _orders.map((o) => Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                              if (o.originStage != null)
+                                SignatureBadge(stage: o.originStage!, name: o.lastSignature!, timestamp: o.lastMoveAt),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text('${o.productCode} - ${o.productName}'),
+                          const SizedBox(height: 16),
+                          ProgressIndicatorWidget(produced: o.producedQuantity, total: o.totalQuantity, color: Colors.blue),
+                          const SizedBox(height: 24),
+                          if (o.status != FigmaStatus.completed)
+                            SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(o), child: const Text('APONTAMENTO'))),
+                          if (o.status == FigmaStatus.completed)
+                            SizedBox(width: double.infinity, child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                              onPressed: () => _sendToNext(o),
+                              child: const Text('ENVIAR PARA PRÓXIMA ETAPA'),
+                            )),
+                        ],
+                      ),
+                    ),
+                  )).toList(),
                 ),
-              )).toList(),
-            ),
           ),
         ],
       ),

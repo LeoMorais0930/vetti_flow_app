@@ -43,6 +43,9 @@ class _GenericProductionScreenState extends State<GenericProductionScreen> {
               producedQuantity: order.totalQuantity,
               remainingQuantity: 0,
               status: FigmaStatus.completed,
+              lastSignature: widget.user.name,
+              originStage: widget.stage,
+              lastMoveAt: DateTime.now(),
             );
             _service.updateOrder(updatedOrder);
             _loadOrders();
@@ -80,6 +83,9 @@ class _GenericProductionScreenState extends State<GenericProductionScreen> {
                 producedQuantity: 0,
                 remainingQuantity: order.totalQuantity,
                 status: FigmaStatus.pending,
+                lastSignature: widget.user.name,
+                originStage: widget.stage,
+                lastMoveAt: DateTime.now(),
               );
               _service.updateOrder(updatedOrder);
               _loadOrders();
@@ -99,12 +105,30 @@ class _GenericProductionScreenState extends State<GenericProductionScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: _orders.map((o) => Card(
-          child: ListTile(
-            title: Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('${o.productCode} - ${o.productName}\nQtd: ${o.totalQuantity}'),
-            trailing: o.status == FigmaStatus.completed 
-              ? const Icon(Icons.check_circle, color: Colors.green)
-              : ElevatedButton(onPressed: () => _handleFinalize(o), child: const Text('FINALIZAR')),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      if (o.originStage != null)
+                        SignatureBadge(
+                          stage: o.originStage!,
+                          name: o.lastSignature ?? 'Desconhecido',
+                          timestamp: o.lastMoveAt,
+                        ),
+                    ],
+                  ),
+                  subtitle: Text('${o.productCode} - ${o.productName}\nQtd: ${o.totalQuantity}'),
+                  trailing: o.status == FigmaStatus.completed 
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : ElevatedButton(onPressed: () => _handleFinalize(o), child: const Text('FINALIZAR')),
+                ),
+              ],
+            ),
           ),
         )).toList(),
       ),
