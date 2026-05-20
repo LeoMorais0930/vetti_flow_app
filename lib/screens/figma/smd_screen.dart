@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/figma_models.dart';
+import '../../services/figma_service.dart';
 import 'widgets.dart';
 
 class SMDScreen extends StatefulWidget {
@@ -14,22 +15,18 @@ class SMDScreen extends StatefulWidget {
 
 class _SMDScreenState extends State<SMDScreen> {
   late List<FigmaOrder> _orders;
+  final FigmaService _service = FigmaService();
 
   @override
   void initState() {
     super.initState();
-    _orders = _getMockOrders();
+    _loadOrders();
   }
 
-  List<FigmaOrder> _getMockOrders() {
-    return [
-      FigmaOrder(
-        id: '1', opNumber: 'OP-550-001', productCode: 'CSA-5000', productName: 'Central Smart Alarm',
-        totalQuantity: 5000, producedQuantity: 2500, remainingQuantity: 2500,
-        status: FigmaStatus.inProgress, createdBy: 'Vera Silva', createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        currentStage: 'smd', productionLogs: [],
-      ),
-    ];
+  void _loadOrders() {
+    setState(() {
+      _orders = _service.getOrdersByStage('smd');
+    });
   }
 
   void _handleProduce(FigmaOrder order) {
@@ -64,18 +61,32 @@ class _SMDScreenState extends State<SMDScreen> {
         message: 'Assinar lote de $qty un',
         onResult: (ok) {
           if (ok) {
-            setState(() {
-              int newProduced = order.producedQuantity + qty;
-              int newRemaining = order.totalQuantity - newProduced;
-              _orders = _orders.map((o) => o.id == order.id ? o.copyWith(
-                producedQuantity: newProduced,
-                remainingQuantity: newRemaining,
-                status: newRemaining == 0 ? FigmaStatus.completed : FigmaStatus.inProgress,
-              ) : o).toList();
-            });
+            int newProduced = order.producedQuantity + qty;
+            int newRemaining = order.totalQuantity - newProduced;
+            final updatedOrder = order.copyWith(
+              producedQuantity: newProduced,
+              remainingQuantity: newRemaining,
+              status: newRemaining == 0 ? FigmaStatus.completed : FigmaStatus.inProgress,
+            );
+            _service.updateOrder(updatedOrder);
+            _loadOrders();
           }
         },
       ),
+    );
+  }
+
+  void _sendToNext(FigmaOrder order) {
+    final updatedOrder = order.copyWith(
+      currentStage: 'gravacao',
+      producedQuantity: 0,
+      remainingQuantity: order.totalQuantity,
+      status: FigmaStatus.pending,
+    );
+    _service.updateOrder(updatedOrder);
+    _loadOrders();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('OP ${order.opNumber} enviada para Gravação')),
     );
   }
 
@@ -98,6 +109,12 @@ class _SMDScreenState extends State<SMDScreen> {
                 const SizedBox(height: 16),
                 if (o.status != FigmaStatus.completed)
                   SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(o), child: const Text('PRODUZIR LOTE'))),
+                if (o.status == FigmaStatus.completed)
+                  SizedBox(width: double.infinity, child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                    onPressed: () => _sendToNext(o),
+                    child: const Text('ENVIAR PARA PRÓXIMA ETAPA'),
+                  )),
               ],
             ),
           ),

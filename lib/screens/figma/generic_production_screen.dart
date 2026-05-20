@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/figma_models.dart';
+import '../../services/figma_service.dart';
 import 'widgets.dart';
 
 class GenericProductionScreen extends StatefulWidget {
@@ -15,22 +16,18 @@ class GenericProductionScreen extends StatefulWidget {
 
 class _GenericProductionScreenState extends State<GenericProductionScreen> {
   late List<FigmaOrder> _orders;
+  final FigmaService _service = FigmaService();
 
   @override
   void initState() {
     super.initState();
-    _orders = _getMockOrders();
+    _loadOrders();
   }
 
-  List<FigmaOrder> _getMockOrders() {
-    return [
-      FigmaOrder(
-        id: 'g1', opNumber: 'OP-GEN-001', productCode: 'PROD-123', productName: 'Produto Genérico',
-        totalQuantity: 1000, producedQuantity: 0, remainingQuantity: 1000,
-        status: FigmaStatus.pending, createdBy: 'Vera', createdAt: DateTime.now(),
-        currentStage: widget.stage, productionLogs: [],
-      ),
-    ];
+  void _loadOrders() {
+    setState(() {
+      _orders = _service.getOrdersByStage(widget.stage);
+    });
   }
 
   void _handleFinalize(FigmaOrder order) {
@@ -41,15 +38,56 @@ class _GenericProductionScreenState extends State<GenericProductionScreen> {
         message: 'Finalizar etapa ${widget.stage.toUpperCase()} para ${order.opNumber}',
         onResult: (ok) {
           if (ok) {
-            setState(() {
-              _orders = _orders.map((o) => o.id == order.id ? o.copyWith(
-                producedQuantity: o.totalQuantity,
-                remainingQuantity: 0,
-                status: FigmaStatus.completed,
-              ) : o).toList();
-            });
+            final nextStage = _getNextStage(widget.stage);
+            final updatedOrder = order.copyWith(
+              producedQuantity: order.totalQuantity,
+              remainingQuantity: 0,
+              status: FigmaStatus.completed,
+            );
+            _service.updateOrder(updatedOrder);
+            _loadOrders();
+
+            if (nextStage != null) {
+              _showNextStageDialog(updatedOrder, nextStage);
+            }
           }
         },
+      ),
+    );
+  }
+
+  String? _getNextStage(String current) {
+    const stages = ['smd', 'gravacao', 'soldagem', 'teste', 'embalagem', 'expedicao'];
+    int idx = stages.indexOf(current);
+    if (idx != -1 && idx < stages.length - 1) {
+      return stages[idx + 1];
+    }
+    return null;
+  }
+
+  void _showNextStageDialog(FigmaOrder order, String nextStage) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enviar para próxima etapa?'),
+        content: Text('Deseja enviar a OP ${order.opNumber} para $nextStage?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('MAIS TARDE')),
+          ElevatedButton(
+            onPressed: () {
+              final updatedOrder = order.copyWith(
+                currentStage: nextStage,
+                producedQuantity: 0,
+                remainingQuantity: order.totalQuantity,
+                status: FigmaStatus.pending,
+              );
+              _service.updateOrder(updatedOrder);
+              _loadOrders();
+              Navigator.pop(context);
+            },
+            child: const Text('ENVIAR'),
+          ),
+        ],
       ),
     );
   }

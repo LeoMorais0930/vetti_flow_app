@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/figma_models.dart';
+import '../../services/figma_service.dart';
 import 'widgets.dart';
 
 class AlmoxarifadoScreen extends StatefulWidget {
@@ -15,29 +16,19 @@ class AlmoxarifadoScreen extends StatefulWidget {
 
 class _AlmoxarifadoScreenState extends State<AlmoxarifadoScreen> {
   late List<FigmaOrder> _orders;
+  final FigmaService _service = FigmaService();
   final DateFormat _df = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
   void initState() {
     super.initState();
-    _orders = _getInitialOrders();
+    _loadOrders();
   }
 
-  List<FigmaOrder> _getInitialOrders() {
-    return [
-      FigmaOrder(
-        id: '1', opNumber: 'OP-550-001', productCode: 'CSA-5000', productName: 'Central Smart Alarm',
-        totalQuantity: 5000, producedQuantity: 0, remainingQuantity: 5000,
-        status: FigmaStatus.pending, createdBy: 'Vera Silva', createdAt: DateTime(2026, 5, 1, 8, 0),
-        currentStage: 'almoxarifado', productionLogs: [],
-      ),
-      FigmaOrder(
-        id: '2', opNumber: 'OP-550-002', productCode: 'SHOX-2000', productName: 'Sensor Shox',
-        totalQuantity: 3000, producedQuantity: 0, remainingQuantity: 3000,
-        status: FigmaStatus.pending, createdBy: 'Vera Silva', createdAt: DateTime(2026, 5, 10, 9, 30),
-        currentStage: 'almoxarifado', productionLogs: [],
-      ),
-    ];
+  void _loadOrders() {
+    setState(() {
+      _orders = _service.getOrdersByStage('almoxarifado');
+    });
   }
 
   void _showCreateDialog() {
@@ -67,22 +58,22 @@ class _AlmoxarifadoScreenState extends State<AlmoxarifadoScreen> {
             onPressed: () {
               final qty = int.tryParse(qtyCtrl.text) ?? 0;
               if (opCtrl.text.isNotEmpty && qty > 0) {
-                setState(() {
-                  _orders.add(FigmaOrder(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    opNumber: opCtrl.text,
-                    productCode: codeCtrl.text,
-                    productName: nameCtrl.text,
-                    totalQuantity: qty,
-                    producedQuantity: 0,
-                    remainingQuantity: qty,
-                    status: FigmaStatus.pending,
-                    createdBy: widget.user.name,
-                    createdAt: DateTime.now(),
-                    currentStage: 'almoxarifado',
-                    productionLogs: [],
-                  ));
-                });
+                final newOrder = FigmaOrder(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  opNumber: opCtrl.text,
+                  productCode: codeCtrl.text,
+                  productName: nameCtrl.text,
+                  totalQuantity: qty,
+                  producedQuantity: 0,
+                  remainingQuantity: qty,
+                  status: FigmaStatus.pending,
+                  createdBy: widget.user.name,
+                  createdAt: DateTime.now(),
+                  currentStage: 'almoxarifado',
+                  productionLogs: [],
+                );
+                _service.addOrder(newOrder);
+                _loadOrders();
                 Navigator.pop(context);
               }
             },
@@ -131,35 +122,44 @@ class _AlmoxarifadoScreenState extends State<AlmoxarifadoScreen> {
         message: 'Produzir $qty un de ${order.opNumber}',
         onResult: (ok) {
           if (ok) {
-            setState(() {
-              int newProduced = order.producedQuantity + qty;
-              int newRemaining = order.totalQuantity - newProduced;
-              _orders = _orders.map((o) {
-                if (o.id == order.id) {
-                  return o.copyWith(
-                    producedQuantity: newProduced,
-                    remainingQuantity: newRemaining,
-                    status: newRemaining == 0 ? FigmaStatus.completed : FigmaStatus.inProgress,
-                    productionLogs: [
-                      ...o.productionLogs,
-                      FigmaProductionLog(
-                        id: DateTime.now().toString(),
-                        operatorName: widget.user.name,
-                        operatorId: widget.user.id,
-                        pin: widget.user.pin,
-                        timestamp: DateTime.now(),
-                        quantityProduced: qty,
-                        stage: 'almoxarifado',
-                      )
-                    ],
-                  );
-                }
-                return o;
-              }).toList();
-            });
+            int newProduced = order.producedQuantity + qty;
+            int newRemaining = order.totalQuantity - newProduced;
+            final updatedOrder = order.copyWith(
+              producedQuantity: newProduced,
+              remainingQuantity: newRemaining,
+              status: newRemaining == 0 ? FigmaStatus.completed : FigmaStatus.inProgress,
+              productionLogs: [
+                ...order.productionLogs,
+                FigmaProductionLog(
+                  id: DateTime.now().toString(),
+                  operatorName: widget.user.name,
+                  operatorId: widget.user.id,
+                  pin: widget.user.pin,
+                  timestamp: DateTime.now(),
+                  quantityProduced: qty,
+                  stage: 'almoxarifado',
+                )
+              ],
+            );
+            _service.updateOrder(updatedOrder);
+            _loadOrders();
           }
         },
       ),
+    );
+  }
+
+  void _sendToSMD(FigmaOrder order) {
+    final updatedOrder = order.copyWith(
+      currentStage: 'smd',
+      producedQuantity: 0, // Reset production for next stage
+      remainingQuantity: order.totalQuantity,
+      status: FigmaStatus.pending,
+    );
+    _service.updateOrder(updatedOrder);
+    _loadOrders();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('OP ${order.opNumber} enviada para o SMD')),
     );
   }
 
@@ -211,6 +211,12 @@ class _AlmoxarifadoScreenState extends State<AlmoxarifadoScreen> {
             const SizedBox(height: 16),
             if (order.status != FigmaStatus.completed)
               SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(order), child: const Text('PRODUZIR LOTE'))),
+            if (order.status == FigmaStatus.completed)
+              SizedBox(width: double.infinity, child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                onPressed: () => _sendToSMD(order),
+                child: const Text('ENVIAR PARA SMD'),
+              )),
           ],
         ),
       ),
