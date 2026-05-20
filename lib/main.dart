@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'theme.dart';
+import 'screens/login_screen.dart';
 import 'screens/orders_screen.dart';
 
 void main() async {
@@ -25,7 +26,7 @@ class VettiFlowApp extends StatelessWidget {
       title: 'VETTI Flow',
       theme: vettiTheme,
       debugShowCheckedModeBanner: false,
-      home: const OrdersScreen(),
+      home: const LoginScreen(),
     );
   }
 }
