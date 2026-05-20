@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../models/figma_models.dart';
 import '../../services/figma_service.dart';
 import 'widgets.dart';
+import 'requisitions_screen.dart';
 
 class SMDScreen extends StatefulWidget {
   final FigmaUser user;
-  final VoidCallback onLogout;
+  final void Function(BuildContext) onLogout;
 
   const SMDScreen({super.key, required this.user, required this.onLogout});
 
@@ -34,7 +35,7 @@ class _SMDScreenState extends State<SMDScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Produzir Lote'),
+        title: const Text('Apontamento'),
         content: TextField(controller: qtyCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Quantidade')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR')),
@@ -92,33 +93,72 @@ class _SMDScreenState extends State<SMDScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final reqCount = _service.requisitions.where((r) => r.status != RequisitionStatus.completed).length;
+
     return Scaffold(
-      appBar: FigmaAppBar(title: 'SMD', user: widget.user, icon: Icons.memory, onLogout: widget.onLogout),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: _orders.map((o) => Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('${o.productCode} - ${o.productName}'),
-                const SizedBox(height: 12),
-                ProgressIndicatorWidget(produced: o.producedQuantity, total: o.totalQuantity, color: Colors.blue),
-                const SizedBox(height: 16),
-                if (o.status != FigmaStatus.completed)
-                  SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(o), child: const Text('PRODUZIR LOTE'))),
-                if (o.status == FigmaStatus.completed)
-                  SizedBox(width: double.infinity, child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                    onPressed: () => _sendToNext(o),
-                    child: const Text('ENVIAR PARA PRÓXIMA ETAPA'),
-                  )),
-              ],
+      appBar: FigmaAppBar(
+        title: 'SMD',
+        user: widget.user,
+        icon: Icons.memory,
+        onLogout: widget.onLogout,
+        onRefresh: _loadOrders,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RequisitionsScreen(user: widget.user, onLogout: widget.onLogout)),
+                  );
+                  setState(() {}); // Refresh count after return
+                },
+                icon: Badge(
+                  label: Text('$reqCount'),
+                  child: const Icon(Icons.list_alt),
+                ),
+                label: const Text('REQUISIÇÕES', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade700,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ),
           ),
-        )).toList(),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: _orders.map((o) => Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(o.opNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('${o.productCode} - ${o.productName}'),
+                      const SizedBox(height: 12),
+                      ProgressIndicatorWidget(produced: o.producedQuantity, total: o.totalQuantity, color: Colors.blue),
+                      const SizedBox(height: 16),
+                      if (o.status != FigmaStatus.completed)
+                        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _handleProduce(o), child: const Text('APONTAMENTO'))),
+                      if (o.status == FigmaStatus.completed)
+                        SizedBox(width: double.infinity, child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                          onPressed: () => _sendToNext(o),
+                          child: const Text('ENVIAR PARA PRÓXIMA ETAPA'),
+                        )),
+                    ],
+                  ),
+                ),
+              )).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

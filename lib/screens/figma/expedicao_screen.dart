@@ -4,7 +4,7 @@ import 'widgets.dart';
 
 class ExpedicaoScreen extends StatefulWidget {
   final FigmaUser user;
-  final VoidCallback onLogout;
+  final void Function(BuildContext) onLogout;
 
   const ExpedicaoScreen({super.key, required this.user, required this.onLogout});
 

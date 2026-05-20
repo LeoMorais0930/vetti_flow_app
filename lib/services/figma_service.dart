@@ -36,7 +36,36 @@ class FigmaService {
     ),
   ];
 
+  final List<FigmaRequisition> _requisitions = [
+    FigmaRequisition(
+      id: '1',
+      number: '1',
+      status: RequisitionStatus.pending,
+      items: [
+        FigmaRequisitionItem(id: 'r1i1', code: 'RES-10K', description: 'Resistor 10k', requestedQuantity: 100),
+        FigmaRequisitionItem(id: 'r1i2', code: 'CAP-100U', description: 'Capacitor 100uF', requestedQuantity: 50),
+      ],
+    ),
+    FigmaRequisition(
+      id: '2',
+      number: '2',
+      status: RequisitionStatus.pending,
+      items: [
+        FigmaRequisitionItem(id: 'r2i1', code: 'LED-RED', description: 'LED Vermelho', requestedQuantity: 200),
+      ],
+    ),
+    FigmaRequisition(
+      id: '3',
+      number: '3',
+      status: RequisitionStatus.pending,
+      items: [
+        FigmaRequisitionItem(id: 'r3i1', code: 'IC-555', description: 'CI 555', requestedQuantity: 10),
+      ],
+    ),
+  ];
+
   List<FigmaOrder> get orders => List.unmodifiable(_orders);
+  List<FigmaRequisition> get requisitions => List.unmodifiable(_requisitions);
 
   void addOrder(FigmaOrder order) {
     _orders.add(order);
@@ -46,6 +75,13 @@ class FigmaService {
     final index = _orders.indexWhere((o) => o.id == updatedOrder.id);
     if (index != -1) {
       _orders[index] = updatedOrder;
+    }
+  }
+
+  void updateRequisition(FigmaRequisition updatedReq) {
+    final index = _requisitions.indexWhere((r) => r.id == updatedReq.id);
+    if (index != -1) {
+      _requisitions[index] = updatedReq;
     }
   }
 

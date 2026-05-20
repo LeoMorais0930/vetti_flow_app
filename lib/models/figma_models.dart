@@ -71,6 +71,60 @@ class FigmaDefectLog {
 
 enum FigmaStatus { pending, inProgress, completed }
 
+enum RequisitionStatus { pending, inProgress, completed }
+
+class FigmaRequisitionItem {
+  final String id;
+  final String code;
+  final String description;
+  final double requestedQuantity;
+  final bool isMarked;
+
+  const FigmaRequisitionItem({
+    required this.id,
+    required this.code,
+    required this.description,
+    required this.requestedQuantity,
+    this.isMarked = false,
+  });
+
+  FigmaRequisitionItem copyWith({bool? isMarked}) {
+    return FigmaRequisitionItem(
+      id: id,
+      code: code,
+      description: description,
+      requestedQuantity: requestedQuantity,
+      isMarked: isMarked ?? this.isMarked,
+    );
+  }
+}
+
+class FigmaRequisition {
+  final String id;
+  final String number;
+  final List<FigmaRequisitionItem> items;
+  final RequisitionStatus status;
+
+  const FigmaRequisition({
+    required this.id,
+    required this.number,
+    required this.items,
+    required this.status,
+  });
+
+  FigmaRequisition copyWith({
+    RequisitionStatus? status,
+    List<FigmaRequisitionItem>? items,
+  }) {
+    return FigmaRequisition(
+      id: id,
+      number: number,
+      items: items ?? this.items,
+      status: status ?? this.status,
+    );
+  }
+}
+
 class FigmaOrder {
   final String id;
   final String opNumber;

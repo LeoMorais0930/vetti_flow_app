@@ -5,7 +5,8 @@ class FigmaAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final FigmaUser user;
   final IconData icon;
-  final VoidCallback onLogout;
+  final void Function(BuildContext) onLogout;
+  final VoidCallback? onRefresh;
   final Color? backgroundColor;
 
   const FigmaAppBar({
@@ -14,15 +15,23 @@ class FigmaAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.user,
     required this.icon,
     required this.onLogout,
+    this.onRefresh,
     this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
+
     return AppBar(
       backgroundColor: backgroundColor ?? const Color(0xFF1976D2),
       elevation: 2,
-      leading: Icon(icon, color: Colors.white),
+      leading: canPop
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            )
+          : Icon(icon, color: Colors.white),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -31,7 +40,31 @@ class FigmaAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        IconButton(icon: const Icon(Icons.logout, color: Colors.white), onPressed: onLogout),
+        if (onRefresh != null)
+          IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: onRefresh),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Sair'),
+                content: const Text('Deseja realmente sair do sistema?'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR')),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close dialog
+                      onLogout(context);
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                    child: const Text('SAIR'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ],
     );
   }

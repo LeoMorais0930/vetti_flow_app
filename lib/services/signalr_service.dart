@@ -26,7 +26,7 @@ class SignalRService {
     if (_hub?.state == HubConnectionState.Connected) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final base  = prefs.getString('server_ip') ?? 'http://10.36.0.75:5000';
+    final base  = prefs.getString('server_ip') ?? 'http://10.36.0.4:5000';
 
     _hub = HubConnectionBuilder()
         .withUrl('$base/hubs/production', options: HttpConnectionOptions(

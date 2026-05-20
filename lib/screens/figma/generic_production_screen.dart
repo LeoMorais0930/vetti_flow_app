@@ -6,7 +6,7 @@ import 'widgets.dart';
 class GenericProductionScreen extends StatefulWidget {
   final FigmaUser user;
   final String stage;
-  final VoidCallback onLogout;
+  final void Function(BuildContext) onLogout;
 
   const GenericProductionScreen({super.key, required this.user, required this.stage, required this.onLogout});
 

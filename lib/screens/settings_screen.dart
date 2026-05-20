@@ -19,7 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   final List<({String name, String ip})> _presets = [
     (name: 'Casa', ip: 'http://192.168.0.18:5000'),
-    (name: 'Escritório (Atual)', ip: 'http://10.36.0.75:5000'),
+    (name: 'Escritório (Atual)', ip: 'http://10.36.0.4:5000'),
     (name: 'Emulador', ip: 'http://10.0.2.2:5000'),
   ];
 

@@ -6,7 +6,7 @@ import 'widgets.dart';
 
 class AlmoxarifadoScreen extends StatefulWidget {
   final FigmaUser user;
-  final VoidCallback onLogout;
+  final void Function(BuildContext) onLogout;
 
   const AlmoxarifadoScreen({super.key, required this.user, required this.onLogout});
 

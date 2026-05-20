@@ -12,6 +12,14 @@ import 'figma/generic_production_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  static void logout(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -30,28 +38,28 @@ class _LoginScreenState extends State<LoginScreen> {
       Widget nextScreen;
       switch (user.role) {
         case FigmaRole.almoxarifado:
-          nextScreen = AlmoxarifadoScreen(user: user, onLogout: _logout);
+          nextScreen = AlmoxarifadoScreen(user: user, onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.smd:
-          nextScreen = SMDScreen(user: user, onLogout: _logout);
+          nextScreen = SMDScreen(user: user, onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.teste:
-          nextScreen = TesteScreen(user: user, onLogout: _logout);
+          nextScreen = TesteScreen(user: user, onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.suporte:
-          nextScreen = SuporteScreen(user: user, onLogout: _logout);
+          nextScreen = SuporteScreen(user: user, onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.expedicao:
-          nextScreen = ExpedicaoScreen(user: user, onLogout: _logout);
+          nextScreen = ExpedicaoScreen(user: user, onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.gravacao:
-          nextScreen = GenericProductionScreen(user: user, stage: 'gravacao', onLogout: _logout);
+          nextScreen = GenericProductionScreen(user: user, stage: 'gravacao', onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.soldagem:
-          nextScreen = GenericProductionScreen(user: user, stage: 'soldagem', onLogout: _logout);
+          nextScreen = GenericProductionScreen(user: user, stage: 'soldagem', onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
         case FigmaRole.embalagem:
-          nextScreen = GenericProductionScreen(user: user, stage: 'embalagem', onLogout: _logout);
+          nextScreen = GenericProductionScreen(user: user, stage: 'embalagem', onLogout: (ctx) => LoginScreen.logout(ctx));
           break;
       }
 
@@ -64,14 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Usuário ou senha inválidos')),
       );
     }
-  }
-
-  void _logout() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
   }
 
   @override
