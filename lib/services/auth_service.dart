@@ -13,9 +13,9 @@ class AuthService {
   ];
 
   static FigmaUser? login(String username, String password) {
-    if (password != 'vetti2026') return null;
     try {
-      return _users.firstWhere((u) => u.username.toLowerCase() == username.toLowerCase());
+      final user = _users.firstWhere((u) => u.username.toLowerCase() == username.toLowerCase());
+      return password == user.pin ? user : null;
     } catch (_) {
       return null;
     }

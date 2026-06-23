@@ -1,383 +1,239 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../models/figma_models.dart';
-import '../../services/figma_service.dart';
 
-class FigmaAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final FigmaUser user;
-  final IconData icon;
-  final void Function(BuildContext) onLogout;
-  final VoidCallback? onRefresh;
-  final Color? backgroundColor;
-
-  const FigmaAppBar({
-    super.key,
-    required this.title,
-    required this.user,
-    required this.icon,
-    required this.onLogout,
-    this.onRefresh,
-    this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final canPop = Navigator.canPop(context);
-
-    return AppBar(
-      backgroundColor: backgroundColor,
-      leading: canPop
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            )
-          : Icon(icon),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title),
-          Text('${user.name} (${user.role.name.toUpperCase()})', style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.normal)),
-        ],
-      ),
-      actions: [
-        if (onRefresh != null)
-          IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Sair'),
-                content: const Text('Deseja realmente sair do sistema?'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR')),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close dialog
-                      onLogout(context);
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                    child: const Text('SAIR'),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
+String roleLabel(FigmaRole role) {
+  switch (role) {
+    case FigmaRole.almoxarifado:
+      return 'Almoxarifado';
+    case FigmaRole.smd:
+      return 'SMD';
+    case FigmaRole.gravacao:
+      return 'Gravacao';
+    case FigmaRole.soldagem:
+      return 'Soldagem';
+    case FigmaRole.teste:
+      return 'Teste';
+    case FigmaRole.embalagem:
+      return 'Embalagem';
+    case FigmaRole.expedicao:
+      return 'Expedicao';
+    case FigmaRole.suporte:
+      return 'Suporte';
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class PinDialog extends StatefulWidget {
   final String expectedPin;
   final String message;
-  final Function(bool) onResult;
+  final ValueChanged<bool> onResult;
 
-  const PinDialog({super.key, required this.expectedPin, required this.message, required this.onResult});
+  const PinDialog({
+    super.key,
+    required this.expectedPin,
+    required this.message,
+    required this.onResult,
+  });
 
   @override
   State<PinDialog> createState() => _PinDialogState();
 }
 
 class _PinDialogState extends State<PinDialog> {
-  final TextEditingController _ctrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
   String? _error;
 
-  void _submit() {
-    if (_ctrl.text == widget.expectedPin) {
-      widget.onResult(true);
-      Navigator.pop(context);
-    } else {
-      setState(() {
-        _error = 'PIN incorreto';
-        _ctrl.clear();
-      });
+  @override
+  void dispose() {
+    _pinCtrl.dispose();
+    super.dispose();
+  }
+
+  void _confirm() {
+    final ok = _pinCtrl.text.trim() == widget.expectedPin;
+    if (!ok) {
+      setState(() => _error = 'PIN invalido');
+      widget.onResult(false);
+      return;
     }
+
+    widget.onResult(true);
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Confirme com seu PIN'),
+      title: const Text('Assinatura do operador'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Seu PIN será registrado como assinatura desta produção.', style: TextStyle(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 24),
+          Text(widget.message),
+          const SizedBox(height: 16),
           TextField(
-            controller: _ctrl,
-            obscureText: true,
-            maxLength: 4,
-            textAlign: TextAlign.center,
+            controller: _pinCtrl,
             keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 28, letterSpacing: 12, fontWeight: FontWeight.bold),
+            obscureText: true,
+            autofocus: true,
             decoration: InputDecoration(
-              errorText: _error, 
-              helperText: widget.message,
-              counterText: "",
-              contentPadding: const EdgeInsets.all(20),
+              labelText: 'PIN',
+              errorText: _error,
+              prefixIcon: const Icon(Icons.password_outlined),
             ),
-            onChanged: (v) { if (v.length == 4) _submit(); },
+            onSubmitted: (_) => _confirm(),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR')),
-      ],
-    );
-  }
-}
-
-class ProgressIndicatorWidget extends StatelessWidget {
-  final int produced;
-  final int total;
-  final Color color;
-
-  const ProgressIndicatorWidget({super.key, required this.produced, required this.total, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    double progress = total > 0 ? produced / total : 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Produzido: $produced / $total', style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
-            Text('${(progress * 100).toStringAsFixed(1)}%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
-          ],
+        TextButton(
+          onPressed: () {
+            widget.onResult(false);
+            Navigator.pop(context);
+          },
+          child: const Text('CANCELAR'),
         ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 10,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
+        FilledButton(
+          onPressed: _confirm,
+          child: const Text('ASSINAR'),
         ),
       ],
     );
   }
 }
 
-class SignatureBadge extends StatelessWidget {
-  final String stage;
-  final String name;
-  final DateTime? timestamp;
+class SectorShell extends StatelessWidget {
+  final FigmaUser user;
+  final String title;
+  final String subtitle;
+  final void Function(BuildContext context) onLogout;
+  final List<Widget> children;
+  final List<Widget>? actions;
 
-  const SignatureBadge({super.key, required this.stage, required this.name, this.timestamp});
+  const SectorShell({
+    super.key,
+    required this.user,
+    required this.title,
+    required this.subtitle,
+    required this.onLogout,
+    required this.children,
+    this.actions,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final df = DateFormat('dd/MM HH:mm');
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.history_edu, size: 12, color: Colors.blue),
-              const SizedBox(width: 4),
-              Text(
-                'De: ${stage.toUpperCase()}',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          ...?actions,
+          IconButton(
+            tooltip: 'Sair',
+            icon: const Icon(Icons.logout),
+            onPressed: () => onLogout(context),
           ),
-          const SizedBox(height: 2),
-          Text(
-            name,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
-          if (timestamp != null)
-            Text(
-              df.format(timestamp!),
-              style: const TextStyle(fontSize: 9, color: Colors.blueGrey),
-            ),
         ],
       ),
-    );
-  }
-}
-
-class GlobalRequisitionButton extends StatelessWidget {
-  final FigmaUser user;
-  final VoidCallback? onSuccess;
-
-  const GlobalRequisitionButton({super.key, required this.user, this.onSuccess});
-
-  String _getWarehouseCode(FigmaRole role) {
-    switch (role) {
-      case FigmaRole.almoxarifado: return '01';
-      case FigmaRole.smd: return '02';
-      case FigmaRole.gravacao:
-      case FigmaRole.soldagem:
-      case FigmaRole.embalagem: return '03'; // General production
-      case FigmaRole.expedicao: return '04';
-      case FigmaRole.suporte: return '05';
-      default: return '01';
-    }
-  }
-
-  void _showDialog(BuildContext context) {
-    final sourceWhCtrl = TextEditingController(text: _getWarehouseCode(user.role));
-    final targetWhCtrl = TextEditingController();
-    final List<Map<String, TextEditingController>> itemCtrls = [
-      {'code': TextEditingController(), 'qty': TextEditingController()},
-      {'code': TextEditingController(), 'qty': TextEditingController()},
-      {'code': TextEditingController(), 'qty': TextEditingController()},
-    ];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('CRIAR REQUISIÇÃO DE EMPENHO'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('INFORMAÇÕES DE ARMAZÉM', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 12)),
-              const SizedBox(height: 12),
-              Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth >= 900 ? 980.0 : double.infinity;
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: sourceWhCtrl,
-                      decoration: const InputDecoration(labelText: 'Armazém Atual', isDense: true),
-                    ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: targetWhCtrl,
-                      decoration: const InputDecoration(labelText: 'Armazém Solicitado', isDense: true, hintText: 'Ex: 01'),
-                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.name,
+                    style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
                   ),
+                  const SizedBox(height: 20),
+                  ...children,
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Divider(),
-              ),
-              const Text('ITENS DA REQUISIÇÃO', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 12)),
-              const SizedBox(height: 12),
-              ...itemCtrls.map((ctrls) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: ctrls['code'],
-                        decoration: const InputDecoration(labelText: 'Código / Item', isDense: true),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: ctrls['qty'],
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Qtd', isDense: true),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _confirmPin(context, sourceWhCtrl.text, targetWhCtrl.text, itemCtrls);
-            },
-            child: const Text('ENVIAR REQUISIÇÃO'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmPin(BuildContext context, String sourceWh, String targetWh, List<Map<String, TextEditingController>> ctrls) {
-    showDialog(
-      context: context,
-      builder: (ctx) => PinDialog(
-        expectedPin: user.pin,
-        message: 'Confirmar requisição do Armazém $sourceWh para $targetWh',
-        onResult: (ok) {
-          if (ok) {
-            final List<FigmaRequisitionItem> items = [];
-            for (var c in ctrls) {
-              if (c['code']!.text.isNotEmpty) {
-                items.add(FigmaRequisitionItem(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  code: c['code']!.text,
-                  description: 'Requisição Global',
-                  requestedQuantity: double.tryParse(c['qty']!.text) ?? 0,
-                ));
-              }
-            }
-            
-            if (items.isNotEmpty) {
-              final newReq = FigmaRequisition(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                number: (DateTime.now().millisecondsSinceEpoch % 10000).toString(),
-                status: RequisitionStatus.pending,
-                requesterName: user.name,
-                originStage: user.role.name,
-                sourceWarehouse: sourceWh,
-                targetWarehouse: targetWh,
-                createdAt: DateTime.now(),
-                items: items,
-              );
-              FigmaService().addRequisition(newReq);
-              onSuccess?.call();
-              _showSuccess(context);
-            }
-          }
+            ),
+          );
         },
       ),
     );
   }
+}
 
-  void _showSuccess(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Requisição enviada com sucesso!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
+class DemoStatusCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const DemoStatusCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: () => _showDialog(context),
-      icon: const Icon(Icons.swap_horiz),
-      label: const Text('CRIAR REQUISIÇÃO'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.orange.shade800,
-        foregroundColor: Colors.white,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.12),
+              foregroundColor: color,
+              child: Icon(icon),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                  const SizedBox(height: 2),
+                  Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DemoOrderTile extends StatelessWidget {
+  final String op;
+  final String product;
+  final String status;
+  final VoidCallback? onTap;
+
+  const DemoOrderTile({
+    super.key,
+    required this.op,
+    required this.product,
+    required this.status,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: const Icon(Icons.assignment_outlined),
+        title: Text(op, style: const TextStyle(fontWeight: FontWeight.w800)),
+        subtitle: Text(product),
+        trailing: Chip(
+          label: Text(status),
+          visualDensity: VisualDensity.compact,
+        ),
       ),
     );
   }

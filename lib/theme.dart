@@ -11,7 +11,6 @@ final vettiTheme = ThemeData(
     seedColor: kVettiBlue,
     primary: kVettiBlue,
     surface: kVettiWhite,
-    background: kVettiBackground,
   ),
   useMaterial3: true,
   scaffoldBackgroundColor: kVettiBackground,
@@ -24,7 +23,7 @@ final vettiTheme = ThemeData(
     titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
   ),
   
-  tabBarTheme: const TabBarTheme(
+  tabBarTheme: const TabBarThemeData(
     labelColor: kVettiWhite,
     unselectedLabelColor: Colors.white70,
     indicatorColor: kVettiWhite,
@@ -66,9 +65,9 @@ final vettiTheme = ThemeData(
     hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
   ),
   
-  cardTheme: CardTheme(
+  cardTheme: CardThemeData(
     elevation: 4,
-    shadowColor: Colors.black.withOpacity(0.1),
+    shadowColor: Colors.black.withValues(alpha: 0.1),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
     ),
@@ -76,7 +75,7 @@ final vettiTheme = ThemeData(
     margin: const EdgeInsets.only(bottom: 16),
   ),
 
-  dialogTheme: DialogTheme(
+  dialogTheme: DialogThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     elevation: 24,
     backgroundColor: kVettiWhite,

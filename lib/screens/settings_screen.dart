@@ -158,7 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _sortBy,
+            initialValue: _sortBy,
             decoration: const InputDecoration(
               labelText: 'Ordenar por',
               prefixIcon: Icon(Icons.sort_outlined),

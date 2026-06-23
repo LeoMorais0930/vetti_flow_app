@@ -61,8 +61,8 @@ class FigmaService {
       originStage: 'smd',
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
       items: [
-        FigmaRequisitionItem(id: 'r1i1', code: 'RES-10K', description: 'Resistor 10k', requestedQuantity: 100),
-        FigmaRequisitionItem(id: 'r1i2', code: 'CAP-100U', description: 'Capacitor 100uF', requestedQuantity: 50),
+        const FigmaRequisitionItem(id: 'r1i1', code: 'RES-10K', description: 'Resistor 10k', requestedQuantity: 100),
+        const FigmaRequisitionItem(id: 'r1i2', code: 'CAP-100U', description: 'Capacitor 100uF', requestedQuantity: 50),
       ],
     ),
   ];

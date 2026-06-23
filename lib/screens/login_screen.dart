@@ -25,8 +25,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
+  final _userCtrl = TextEditingController(text: 'vera');
+  final _passCtrl = TextEditingController(text: '8888');
   bool _isLoading = false;
 
   void _handleLogin() {
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -98,11 +98,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.factory, size: 64, color: Color(0xFF1976D2)),
-                const SizedBox(height: 16),
                 const Text(
-                  'VETTI Flow',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1976D2)),
+                  'VETTI',
+                  style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: Color(0xFF1976D2)),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Flow',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF1976D2)),
                 ),
                 const Text('Sistema de Produção', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 32),

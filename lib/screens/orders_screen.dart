@@ -173,7 +173,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               height: 250,
               width: double.maxFinite,
               decoration: BoxDecoration(
-                color: Colors.blueGrey.withOpacity(0.05),
+                color: Colors.blueGrey.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: kVettiGray),
               ),
@@ -191,7 +191,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           FilledButton.icon(
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: buffer.toString()));
-              if (mounted) {
+              if (mounted && ctx.mounted) {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conteúdo copiado com sucesso!')));
               }
@@ -267,7 +267,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         children: [
           if (_tabController.index == 1)
             Container(
-              color: kVettiGray.withOpacity(0.3),
+              color: kVettiGray.withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
@@ -517,7 +517,7 @@ class _OrderCardState extends State<_OrderCard> {
                                   await ApiService.instance.advanceStage(widget.order.id, componentIndex: entry.key);
                                   widget.onRefresh(); 
                                 } catch (e) {
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
                                     );
@@ -533,7 +533,7 @@ class _OrderCardState extends State<_OrderCard> {
                           value: compProgress,
                           minHeight: 3,
                           backgroundColor: kVettiGray,
-                          valueColor: AlwaysStoppedAnimation(comp.isCompleted ? Colors.green : Colors.green.withOpacity(0.5)),
+                          valueColor: AlwaysStoppedAnimation(comp.isCompleted ? Colors.green : Colors.green.withValues(alpha: 0.5)),
                         ),
                       ],
                     ),

@@ -145,7 +145,7 @@ class _NewOrderScreenState extends State<NewOrderScreen> {
                           label: const Text('Pedido / Kit'),
                           selected: _isKitMode,
                           onSelected: (v) => setState(() => _isKitMode = v),
-                          selectedColor: kVettiBlue.withOpacity(0.2),
+                          selectedColor: kVettiBlue.withValues(alpha: 0.2),
                         ),
                       ],
                     ),

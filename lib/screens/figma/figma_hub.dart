@@ -1,47 +1,71 @@
 import 'package:flutter/material.dart';
 import '../../models/figma_models.dart';
-import '../login_screen.dart';
 import 'almoxarifado_screen.dart';
-import 'smd_screen.dart'; // These will be created next
-import 'teste_screen.dart';
-import 'suporte_screen.dart';
 import 'expedicao_screen.dart';
 import 'generic_production_screen.dart';
+import 'smd_screen.dart';
+import 'suporte_screen.dart';
+import 'teste_screen.dart';
 
 class FigmaHub extends StatelessWidget {
   const FigmaHub({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    void logout(BuildContext ctx) => LoginScreen.logout(ctx);
+  static const _users = [
+    FigmaUser(id: 'vera', name: 'Vera (Almoxarifado)', username: 'vera', role: FigmaRole.almoxarifado, pin: '8888'),
+    FigmaUser(id: 'paula', name: 'Paula (SMD)', username: 'paula', role: FigmaRole.smd, pin: '1234'),
+    FigmaUser(id: 'carlos', name: 'Carlos (Gravacao)', username: 'carlos', role: FigmaRole.gravacao, pin: '2222'),
+    FigmaUser(id: 'ana', name: 'Ana (Soldagem)', username: 'ana', role: FigmaRole.soldagem, pin: '3333'),
+    FigmaUser(id: 'joao', name: 'Joao (Teste)', username: 'joao', role: FigmaRole.teste, pin: '4444'),
+    FigmaUser(id: 'maria', name: 'Maria (Embalagem)', username: 'maria', role: FigmaRole.embalagem, pin: '5555'),
+    FigmaUser(id: 'pedro', name: 'Pedro (Expedicao)', username: 'pedro', role: FigmaRole.expedicao, pin: '6666'),
+    FigmaUser(id: 'lucas', name: 'Lucas (Suporte)', username: 'lucas', role: FigmaRole.suporte, pin: '7777'),
+  ];
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Figma Workspace Hub'), backgroundColor: Colors.black87, foregroundColor: Colors.white),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _tile(context, 'Almoxarifado (Vera)', 'vera', '8888', FigmaRole.almoxarifado, Colors.blueGrey, Icons.inventory, (u) => AlmoxarifadoScreen(user: u, onLogout: logout)),
-          _tile(context, 'SMD (Paula)', 'paula', '1234', FigmaRole.smd, Colors.blue, Icons.memory, (u) => SMDScreen(user: u, onLogout: logout)),
-          _tile(context, 'Gravação (Carlos)', 'carlos', '2222', FigmaRole.gravacao, Colors.purple, Icons.code, (u) => GenericProductionScreen(user: u, stage: 'gravacao', onLogout: logout)),
-          _tile(context, 'Soldagem (Ana)', 'ana', '3333', FigmaRole.soldagem, Colors.orange, Icons.flash_on, (u) => GenericProductionScreen(user: u, stage: 'soldagem', onLogout: logout)),
-          _tile(context, 'Teste (Joao)', 'joao', '4444', FigmaRole.teste, Colors.lightBlue, Icons.fact_check, (u) => TesteScreen(user: u, onLogout: logout)),
-          _tile(context, 'Embalagem (Maria)', 'maria', '5555', FigmaRole.embalagem, Colors.green, Icons.inventory_2, (u) => GenericProductionScreen(user: u, stage: 'embalagem', onLogout: logout)),
-          _tile(context, 'Expedição (Pedro)', 'pedro', '6666', FigmaRole.expedicao, Colors.deepPurple, Icons.local_shipping, (u) => ExpedicaoScreen(user: u, onLogout: logout)),
-          _tile(context, 'Suporte (Lucas)', 'lucas', '7777', FigmaRole.suporte, Colors.red, Icons.build, (u) => SuporteScreen(user: u, onLogout: logout)),
-        ],
-      ),
-    );
+  Widget _screenFor(FigmaUser user) {
+    void logout(BuildContext context) => Navigator.pop(context);
+
+    switch (user.role) {
+      case FigmaRole.almoxarifado:
+        return AlmoxarifadoScreen(user: user, onLogout: logout);
+      case FigmaRole.smd:
+        return SMDScreen(user: user, onLogout: logout);
+      case FigmaRole.gravacao:
+        return GenericProductionScreen(user: user, stage: 'gravacao', onLogout: logout);
+      case FigmaRole.soldagem:
+        return GenericProductionScreen(user: user, stage: 'soldagem', onLogout: logout);
+      case FigmaRole.teste:
+        return TesteScreen(user: user, onLogout: logout);
+      case FigmaRole.embalagem:
+        return GenericProductionScreen(user: user, stage: 'embalagem', onLogout: logout);
+      case FigmaRole.expedicao:
+        return ExpedicaoScreen(user: user, onLogout: logout);
+      case FigmaRole.suporte:
+        return SuporteScreen(user: user, onLogout: logout);
+    }
   }
 
-  Widget _tile(BuildContext context, String title, String user, String pin, FigmaRole role, Color color, IconData icon, Widget Function(FigmaUser) builder) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon, color: color),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('User: $user | PIN: $pin'),
-        onTap: () {
-          final u = FigmaUser(id: user, name: title, username: user, role: role, pin: pin);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => builder(u)));
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Figma Hub')),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _users.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final user = _users[index];
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text(user.name),
+              subtitle: Text(user.username),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => _screenFor(user)),
+              ),
+            ),
+          );
         },
       ),
     );

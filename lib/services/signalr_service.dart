@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import '../models/models.dart';
@@ -42,14 +44,14 @@ class SignalRService {
 
     // ESCUTA ÚNICA E SIMPLIFICADA
     _hub!.on('RefreshAll', (args) {
-      print('SignalR: RefreshAll recebido');
+      developer.log('SignalR: RefreshAll recebido');
       for (final cb in _refreshListeners) {
         cb();
       }
     });
 
     _hub!.on('OrderUpdated', (args) {
-      print('SignalR: OrderUpdated recebido');
+      developer.log('SignalR: OrderUpdated recebido');
       if (args != null && args.isNotEmpty) {
         try {
           final data = args[0] as Map<String, dynamic>;
@@ -58,14 +60,16 @@ class SignalRService {
             cb(order);
           }
         } catch (e) {
-          print('SignalR Erro ao processar OrderUpdated: $e');
+          developer.log('SignalR Erro ao processar OrderUpdated: $e');
         }
       }
     });
 
     _hub!.onreconnected(({connectionId}) {
       _connected = true;
-      for (final cb in _refreshListeners) cb(); // Refresh ao voltar
+      for (final cb in _refreshListeners) {
+        cb(); // Refresh ao voltar
+      }
     });
 
     _hub!.onclose(({error}) => _connected = false);
@@ -73,21 +77,21 @@ class SignalRService {
     try {
       await _hub!.start();
       _connected = true;
-      print('SignalR: Conectado');
+      developer.log('SignalR: Conectado');
     } catch (e) {
-      print('SignalR Erro: $e');
+      developer.log('SignalR Erro: $e');
       _connected = false;
       Future.delayed(const Duration(seconds: 10), connect);
     }
   }
 
   Future<void> reconnectWithNewIp() async {
-    print('SignalR: Reconectando com novo IP...');
+    developer.log('SignalR: Reconectando com novo IP...');
     if (_hub != null) {
       try {
         await _hub!.stop();
       } catch (e) {
-        print('SignalR: Erro ao parar hub: $e');
+        developer.log('SignalR: Erro ao parar hub: $e');
       }
       _hub = null;
       _connected = false;

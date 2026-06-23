@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -40,7 +41,7 @@ class ApiService {
       final list = jsonDecode(res.body) as List;
       return list.map((j) => Blueprint.fromJson(j)).toList();
     } catch (e) {
-      print('Erro API getBlueprints em $url: $e');
+      developer.log('Erro API getBlueprints em $url: $e');
       rethrow;
     }
   }
@@ -101,7 +102,7 @@ class ApiService {
       final list = jsonDecode(res.body) as List;
       return list.map((j) => ProductionOrder.fromJson(j)).toList();
     } catch (e) {
-      print('Erro API getActiveOrders em $url: $e');
+      developer.log('Erro API getActiveOrders em $url: $e');
       rethrow;
     }
   }

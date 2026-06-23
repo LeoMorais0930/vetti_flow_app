@@ -353,9 +353,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: kVettiGray.withOpacity(0.1),
+                    color: kVettiGray.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: kVettiGray.withOpacity(0.5)),
+                    border: Border.all(color: kVettiGray.withValues(alpha: 0.5)),
                   ),
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -508,13 +508,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: kVettiBlue.withOpacity(0.07),
+                color: kVettiBlue.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kVettiBlue.withOpacity(0.3)),
+                border: Border.all(color: kVettiBlue.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
-                  Text(
+                  const Text(
                     'Etapa atual',
                     style: TextStyle(color: kVettiBlue, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
@@ -576,7 +576,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ],
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'A TV atualiza automaticamente ao tocar',
               textAlign: TextAlign.center,
               style: TextStyle(color: kVettiGrayDk, fontSize: 12),
